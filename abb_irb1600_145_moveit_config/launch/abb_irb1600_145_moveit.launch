@@ -1,0 +1,46 @@
+<launch>
+
+  <!-- By default, we do not start a database (it can be large) -->
+  <arg name="db" default="false" />
+
+  <!-- By default, we are not in debug mode -->
+  <arg name="debug" default="false" />
+
+  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+  <include file="$(find abb_irb1600_145_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- Set the robot controller IP address -->
+  <arg name="robot_ip" />
+
+  <param name="robot_ip_address" type="str" value="$(arg robot_ip)"/>
+
+  <!-- Start the interface nodes that talk to the actual robot -->
+  <node pkg="abb_irb1600_145_support" type="start_robot_state_interface.sh" name="start_robot_state_interface" />
+  <node pkg="abb_irb1600_145_support" type="start_robot_motion_interface.sh" name="start_robot_motion_interface" />
+
+  <!-- Start the trajectory action interface -->
+  <node pkg="industrial_robot_client" type="joint_trajectory_action" name="joint_trajectory_action" />
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <include file="$(find abb_irb1600_145_moveit_config)/launch/move_group.launch">
+    <arg name="allow_trajectory_execution" value="true"/>  
+    <arg name="fake_execution" value="false"/>
+    <arg name="info" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- Run Rviz and load the default config to see the state of the move_group node -->
+  <include file="$(find abb_irb1600_145_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- If database loading was enabled, start mongodb as well -->
+  <include file="$(find abb_irb1600_145_moveit_config)/launch/default_warehouse_db.launch" if="$(arg db)"/>
+
+</launch>

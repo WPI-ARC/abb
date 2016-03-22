@@ -6,7 +6,7 @@
      ROS-Industrial nodes for interfacing with ABB robot controllers.
    </p>
    <p>
-     This package is part of the ROS-Industrial program and contains nodes 
+     This package is part of the ROS-Industrial program and contains nodes
      for interfacing with ABB industrial robot controllers.
    </p>
   </description>
